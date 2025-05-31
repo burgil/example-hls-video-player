@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef, useState, useCallback } from 'react'
+import { useMemo, useEffect, useRef, useState } from 'react'
 import { PlayIcon, Volume1Icon, Volume2Icon, VolumeIcon, FullscreenIcon, SettingsIcon, PauseIcon } from 'lucide-react';
 import Hls from 'hls.js';
 import { parseTime } from './utils';
@@ -9,17 +9,6 @@ function App() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [currentVolume, setCurrentVolume] = useState(0.5);
-
-  // Play/Pause Video Function:
-  const playPauseVideo = useCallback(() => {
-    if (isVideoPlaying) {
-      videoRef.current?.pause();
-      setIsVideoPlaying(false);
-    } else {
-      videoRef.current?.play();
-      setIsVideoPlaying(true);
-    }
-  }, [isVideoPlaying]);
 
   // Test Input:
   const testInput = useMemo(() => {
@@ -56,6 +45,7 @@ function App() {
 
   // HLS.js
   useEffect(() => {
+    console.log("Load HLS")
     const hls = new Hls({
       'debug': false
     });
@@ -72,6 +62,7 @@ function App() {
       console.error('HLS is not supported on this browser!')
     }
     return () => { // Reset values on hot module reload
+      console.log("Unload HLS")
       setIsVideoLoaded(false);
       setIsVideoPlaying(false);
       setCurrentTime(0);
@@ -81,6 +72,7 @@ function App() {
 
   // Update the volume:
   useEffect(() => {
+    console.log("Update the volume")
     if (videoRef.current && isVideoLoaded) {
       videoRef.current.volume = currentVolume;
     }
@@ -88,22 +80,40 @@ function App() {
 
   // Play/pause when you click the video element:
   useEffect(() => {
-    if (videoRef.current && isVideoLoaded) {
-      videoRef.current.addEventListener('click', playPauseVideo);
+    if (!isVideoLoaded) return;
+    const video = videoRef.current;
+    if (!video) return;
+    console.log("Play pause when you click the video")
+    function playPauseVideo() {
+      if (isVideoPlaying) {
+        video?.pause();
+        setIsVideoPlaying(false);
+      } else {
+        video?.play();
+        setIsVideoPlaying(true);
+      }
     }
-    // cleanup is not needed unless the video can unload, and for now we only have one video to test...
-  }, [isVideoLoaded, playPauseVideo]);
+    video.addEventListener('click', playPauseVideo);
+    return () => {
+      video.removeEventListener('click', playPauseVideo);
+    }
+  }, [isVideoLoaded, isVideoPlaying]);
 
   // Sync video duration:
   useEffect(() => {
-    if (videoRef.current && isVideoLoaded) {
-      videoRef.current.addEventListener('timeupdate', () => {
-        if (videoRef.current) {
-          setCurrentTime(videoRef.current.currentTime)
-        }
-      });
+    if (!isVideoLoaded) return;
+    const video = videoRef.current;
+    if (!video) return;
+    console.log("Sync video duration")
+    function syncVideoTime() {
+      if (video) {
+        setCurrentTime(video.currentTime)
+      }
     }
-    // cleanup is not needed unless the video can unload, and for now we only have one video to test...
+    video.addEventListener('timeupdate', syncVideoTime);
+    return () => {
+      video.removeEventListener('timeupdate', syncVideoTime);
+    }
   }, [isVideoLoaded]);
 
   return (
@@ -120,7 +130,9 @@ function App() {
           {/* Left Side */}
           <div className='flex gap-4 ml-3'>
             {/* Play/Pause */}
-            <div className='cursor-pointer' onClick={playPauseVideo}>
+            <div className='cursor-pointer' onClick={() => {
+
+            }}>
               {isVideoPlaying ? (
                 <PauseIcon />
               ) : (
@@ -136,7 +148,7 @@ function App() {
               <Volume1Icon />
             )}
             {/* Time */}
-            <div>{parseTime(currentTime)} / {parseTime(testInput.videoLength)}</div>
+            <div className='select-none'>{parseTime(currentTime)} / {parseTime(testInput.videoLength)}</div>
           </div>
           {/* Right Side */}
           <div className='flex gap-4 mr-3'>
@@ -152,7 +164,7 @@ function App() {
                 </div>
               )
             })}
-            <img src='/yeda.svg' className='select-none' width={42} alt='yeda logo' />
+            <img src='/yeda.svg' draggable={false} className='select-none' width={42} alt='yeda logo' />
           </div>
         </div>
       </div>
