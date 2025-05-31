@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef, useState } from "react"
+import { useMemo, useEffect, useRef, useState, useCallback } from "react"
 import { PlayIcon, Volume1Icon, Volume2Icon, VolumeIcon, FullscreenIcon, SettingsIcon, PauseIcon } from 'lucide-react';
 import Hls from "hls.js";
 import { parseTime } from "./utils";
@@ -9,6 +9,17 @@ function App() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [currentVolume, setCurrentVolume] = useState(0.5);
+
+  // Play/Pause Video:
+  const playPauseVideo = useCallback(() => {
+    if (isVideoPlaying) {
+      videoRef.current?.pause();
+      setIsVideoPlaying(false);
+    } else {
+      videoRef.current?.play();
+      setIsVideoPlaying(true);
+    }
+  }, [isVideoPlaying]);
 
   // Test Input:
   const testInput = useMemo(() => {
@@ -69,24 +80,36 @@ function App() {
     }
   }, [currentVolume, isVideoLoaded]);
 
+  // Play/pause when you click the video element:
+  useEffect(() => {
+    if (videoRef.current && isVideoLoaded) {
+      videoRef.current.addEventListener('click', playPauseVideo);
+    }
+    // cleanup is not needed unless the video can unload, and for now we only have one video to test...
+  }, [isVideoLoaded, playPauseVideo]);
+
+  // Sync video duration:
+  useEffect(() => {
+    if (videoRef.current && isVideoLoaded) {
+      videoRef.current.addEventListener('timeupdate', () => {
+        if (videoRef.current) {
+          setCurrentTime(videoRef.current.currentTime)
+        }
+      });
+    }
+    // cleanup is not needed unless the video can unload, and for now we only have one video to test...
+  }, [isVideoLoaded]);
+
   return (
     <>
-      <div className="m-auto max-w-[570px] relative">
+      <div className={`m-auto max-w-[570px] relative${!isVideoPlaying ? ' cursor-pointer' : ''}`}>
         <video
           ref={videoRef}
         />
         {/* Controls */}
         <div className="flex absolute bottom-0 left-0 right-0">
           {/* Play/Pause */}
-          <div className='cursor-pointer' onClick={() => {
-            if (isVideoPlaying) {
-              videoRef.current?.pause();
-              setIsVideoPlaying(false);
-            } else {
-              videoRef.current?.play();
-              setIsVideoPlaying(true);
-            }
-          }}>
+          <div className='cursor-pointer' onClick={playPauseVideo}>
             {isVideoPlaying ? (
               <PauseIcon />
             ) : (

@@ -37,3 +37,7 @@ v4: Working on the video controls
 v5: Controls almost done
 
 ![v5](v5.png)
+
+v6: The timer works now!
+
+![v6](v6.png)
