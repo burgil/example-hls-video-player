@@ -1,11 +1,11 @@
 import { useMemo, useEffect, useRef, useState } from "react"
-import { PlayIcon, Volume1Icon, Volume2Icon, VolumeIcon, FullscreenIcon, SettingsIcon } from 'lucide-react';
+import { PlayIcon, Volume1Icon, Volume2Icon, VolumeIcon, FullscreenIcon, SettingsIcon, PauseIcon } from 'lucide-react';
 import Hls from "hls.js";
 import { parseTime } from "./utils";
 
 function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isVideoPlayer, setIsVideoPlayer] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
 
   // Test Input:
@@ -66,9 +66,21 @@ function App() {
           ref={videoRef}
         />
         <div className="flex absolute bottom-0 left-0 right-0">
-          <PlayIcon className='pointer' onClick={() => {
-            videoRef.current?.play();
-          }} />
+          <div className='cursor-pointer' onClick={() => {
+            if (isVideoPlaying) {
+              videoRef.current?.pause();
+              setIsVideoPlaying(false);
+            } else {
+              videoRef.current?.play();
+              setIsVideoPlaying(true);
+            }
+          }}>
+            {isVideoPlaying ? (
+              <PauseIcon />
+            ) : (
+              <PlayIcon />
+            )}
+          </div>
           <VolumeIcon />
           <Volume1Icon />
           <Volume2Icon />
