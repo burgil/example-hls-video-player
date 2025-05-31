@@ -18,10 +18,14 @@ Then open the app: <http://localhost:5173/>
 
 ## Patch log
 
-v1:
+v1: Got something basic
 
 ![v1](v1.png)
 
-v2:
+v2: Getting there
 
 ![v2](v2.png)
+
+v3: Parsed the time
+
+![v3](v3.png)

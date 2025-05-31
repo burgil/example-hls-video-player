@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useRef } from "react"
 import { PlayIcon, Volume1Icon, Volume2Icon, VolumeIcon, FullscreenIcon, SettingsIcon } from 'lucide-react';
 import Hls from "hls.js";
+import { parseTime } from "./utils";
 
 function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -69,7 +70,7 @@ function App() {
         <Volume2Icon />
         <FullscreenIcon />
         <SettingsIcon />
-        <div>0:00 / {testInput.videoLength}</div>
+        <div>0:00 / {parseTime(testInput.videoLength)}</div>
         {testInput.chapters.map((chapter, index) => {
           return (
             <div key={`chapter_${index}`}>
