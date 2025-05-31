@@ -45,7 +45,6 @@ function App() {
 
   // HLS.js
   useEffect(() => {
-    console.log("Load HLS")
     const hls = new Hls({
       'debug': false
     });
@@ -56,13 +55,12 @@ function App() {
         setIsVideoLoaded(true);
       }
       hls.on(Hls.Events.ERROR, (err) => {
-        console.log(err)
+        if (err !== 'hlsError') console.log(err);
       });
     } else {
       console.error('HLS is not supported on this browser!')
     }
     return () => { // Reset values on hot module reload
-      console.log("Unload HLS")
       setIsVideoLoaded(false);
       setIsVideoPlaying(false);
       setCurrentTime(0);
@@ -72,7 +70,6 @@ function App() {
 
   // Update the volume:
   useEffect(() => {
-    console.log("Update the volume")
     if (videoRef.current && isVideoLoaded) {
       videoRef.current.volume = currentVolume;
     }
@@ -83,7 +80,6 @@ function App() {
     if (!isVideoLoaded) return;
     const video = videoRef.current;
     if (!video) return;
-    console.log("Play pause when you click the video")
     function playPauseVideo() {
       if (isVideoPlaying) {
         video?.pause();
@@ -104,7 +100,6 @@ function App() {
     if (!isVideoLoaded) return;
     const video = videoRef.current;
     if (!video) return;
-    console.log("Sync video duration")
     function syncVideoTime() {
       if (video) {
         setCurrentTime(video.currentTime)
