@@ -59,25 +59,26 @@ function App() {
 
   return (
     <>
-      <div className="video-player-container">
+      <div className="m-auto max-w-[570px] relative">
         <video
           ref={videoRef}
-          className='video-player'
         />
-        <PlayIcon />
-        <VolumeIcon />
-        <Volume1Icon />
-        <Volume2Icon />
-        <FullscreenIcon />
-        <SettingsIcon />
-        <div>0:00 / {parseTime(testInput.videoLength)}</div>
-        {testInput.chapters.map((chapter, index) => {
-          return (
-            <div key={`chapter_${index}`}>
-              <div>{chapter.title}</div>
-            </div>
-          )
-        })}
+        <div className="flex">
+          <PlayIcon />
+          <VolumeIcon />
+          <Volume1Icon />
+          <Volume2Icon />
+          <FullscreenIcon />
+          <SettingsIcon />
+          <div>0:00 / {parseTime(testInput.videoLength)}</div>
+          {testInput.chapters.map((chapter, index) => {
+            return (
+              <div key={`chapter_${index}`} className="hidden absolute">
+                <div>{chapter.title}</div>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </>
   )

@@ -33,11 +33,3 @@ body, #root {
     background-color: #ffffff;
   }
 }
-
-/* Video player */
-
-.video-player-container {
-  max-width: 570px;
-  margin: auto;
-  display: block;
-}
