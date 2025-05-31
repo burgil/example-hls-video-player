@@ -57,3 +57,7 @@ v9: Timeline looks good! (Still not hoverable xD)
 v10: Rounded edges loosk good!
 
 ![v10](v10.png)
+
+v11: Chapters are showing up
+
+![v11](v11.png)

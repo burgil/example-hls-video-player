@@ -19,7 +19,8 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-body, #root {
+body,
+#root {
   min-height: 100vh;
 }
 
@@ -32,4 +33,21 @@ body, #root {
     color: #213547;
     background-color: #ffffff;
   }
+}
+
+.arrow:after {
+  content: " ";
+  border-top: 11px solid #222;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  margin: auto;
+  width: 11px;
+}
+
+.chapter:hover .arrow {
+  display: block;
 }

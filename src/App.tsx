@@ -123,8 +123,13 @@ function App() {
           {/* Chapters */}
           {testInput.chapters.map((chapter, index) => {
             return (
-              <div key={`chapter_${index}`} className='bg-blue-100 w-full h-[1px]'>
-                {/* <div hidden absolute>{chapter.title}</div> */}
+              <div key={`chapter_${index}`} className='chapter bg-blue-100 w-full h-[1px]'>
+                <div className='absolute p-4 rounded-[4px] bottom-[20px] arrow h-fit w-full max-w-[200px] text-center hidden'
+                  style={{
+                    background: 'linear-gradient(#333, #222)'
+                  }}>
+                  {chapter.title}
+                </div>
               </div>
             )
           })}
