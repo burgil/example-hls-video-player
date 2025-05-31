@@ -20,48 +20,48 @@ Then open the app: <http://localhost:5173/>
 
 v1: Got something basic
 
-![v1](v1.png)
+![v1](patch-logs/v1.png)
 
 v2: Getting there
 
-![v2](v2.png)
+![v2](patch-logs/v2.png)
 
 v3: Parsed the time
 
-![v3](v3.png)
+![v3](patch-logs/v3.png)
 
 v4: Working on the video controls
 
-![v4](v4.png)
+![v4](patch-logs/v4.png)
 
 v5: Controls almost done
 
-![v5](v5.png)
+![v5](patch-logs/v5.png)
 
 v6: The timer works now!
 
-![v6](v6.png)
+![v6](patch-logs/v6.png)
 
 v7: Better controls design and handling
 
-![v7](v7.png)
+![v7](patch-logs/v7.png)
 
 v8: Fullscreen support!
 
-![v8](v8.png)
+![v8](patch-logs/v8.png)
 
 v9: Timeline looks good! (Still not hoverable xD)
 
-![v9](v9.png)
+![v9](patch-logs/v9.png)
 
 v10: Rounded edges loosk good!
 
-![v10](v10.png)
+![v10](patch-logs/v10.png)
 
 v11: Chapters are showing up
 
-![v11](v11.png)
+![v11](patch-logs/v11.png)
 
 v12: Almost done
 
-![v12](v12.png)
+![v12](patch-logs/v12.png)
