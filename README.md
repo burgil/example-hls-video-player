@@ -65,3 +65,7 @@ v11: Chapters are showing up
 v12: Almost done
 
 ![v12](patch-logs/v12.png)
+
+v13: Final touches
+
+![v13](patch-logs/v13.png)

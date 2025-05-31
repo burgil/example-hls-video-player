@@ -151,16 +151,18 @@ function App() {
           className='w-full h-full'
         />
         {/* Timeline */}
-        <div className='flex gap-1 w-full absolute z-20 bottom-[40px] left-0 right-0'>
+        <div className='flex gap-1 w-full absolute z-20 bottom-[25px] left-0 right-0'>
           {/* Chapters */}
           {testInput.chapters.map((chapter, index) => {
             return (
-              <div key={`chapter_${index}`} className='chapter bg-blue-100 w-full h-[1px]'>
-                <div className={`absolute p-4 rounded-[4px] bottom-[20px] arrow h-fit w-full max-w-[200px] text-center hidden ${index === 0 ? 'left-1' : ''}${index === testInput.chapters.length - 1 ? 'right-1' : ''}${index !== 0 && index !== testInput.chapters.length - 1 ? '-ml-[63px]' : ''}`}
-                  style={{
-                    background: 'linear-gradient(#333, #222)'
-                  }}>
-                  {chapter.title}
+              <div key={`chapter_${index}`} className='chapter pt-3 pb-5 pointer-none w-full'>
+                <div className='chapter-line bg-[#ffffff70] transition-colors w-full h-[1.4px]'>
+                  <div className={`opacity-0 transition-opacity absolute p-4 rounded-[4px] bottom-[40px] arrow h-fit w-full max-w-[200px] text-center ${index === 0 ? 'left-1' : ''}${index === testInput.chapters.length - 1 ? 'right-1' : ''}${index !== 0 && index !== testInput.chapters.length - 1 ? '-ml-[63px]' : ''}`}
+                    style={{
+                      background: 'linear-gradient(#333, #222)'
+                    }}>
+                    {chapter.title}
+                  </div>
                 </div>
               </div>
             )
@@ -174,7 +176,7 @@ function App() {
           {/* Left Side */}
           <div className='flex gap-4 ml-3'>
             {/* Play/Pause */}
-            <div className='cursor-pointer' onClick={() => {
+            <div className='cursor-pointer relative z-30' onClick={() => {
               if (isVideoPlaying) {
                 videoRef.current?.pause();
                 setIsVideoPlaying(false);
@@ -190,7 +192,7 @@ function App() {
               )}
             </div>
             {/* Volume */}
-            <div className='cursor-pointer' onClick={() => {
+            <div className='cursor-pointer relative z-30' onClick={() => {
               if (currentVolume > 0.5) {
                 setCurrentVolume(0.5);
               } else if (currentVolume === 0) {
@@ -213,13 +215,13 @@ function App() {
           {/* Right Side */}
           <div className='flex gap-4 mr-3'>
             {/* Settings */}
-            <div className='cursor-pointer' onClick={() => {
+            <div className='cursor-pointer relative z-30' onClick={() => {
               alert('WIP')
             }}>
               <SettingsIcon />
             </div>
             {/* Fullscreen */}
-            <div className='cursor-pointer' onClick={() => {
+            <div className='cursor-pointer relative z-30' onClick={() => {
               if (document.fullscreenElement) {
                 document.exitFullscreen();
               } else {

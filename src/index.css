@@ -60,5 +60,9 @@ body,
 }
 
 .chapter:hover .arrow {
-  display: block;
+  opacity: 1;
+}
+
+.chapter:hover .chapter-line {
+  background: #76a4f9;
 }
