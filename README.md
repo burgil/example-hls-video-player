@@ -69,3 +69,7 @@ v12: Almost done
 v13: Final touches
 
 ![v13](patch-logs/v13.png)
+
+v14: Made the chapters follow the mouse & show current hover time + detect click time
+
+![v14](patch-logs/v14.png)

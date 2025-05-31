@@ -5,10 +5,16 @@ import { parseTime } from './utils';
 
 function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [currentVolume, setCurrentVolume] = useState(0.5);
+  const [timelineHoverTime, setTimelineHoverTime] = useState<number | null>(null);
+  const [timelineHoverX, setTimelineHoverX] = useState<number | null>(null);
+  const [tooltipLeftStyle, setTooltipLeftStyle] = useState<string | number>('50%');
+  const [tooltipTransformStyle, setTooltipTransformStyle] = useState<string>('translateX(-50%)');
 
   // Test Input:
   const testInput = useMemo(() => {
@@ -59,7 +65,7 @@ function App() {
     } else {
       console.error('HLS is not supported on this browser!')
     }
-    return () => { // Reset values on hot module reload
+    return () => { // reset values on hot module reload
       setIsVideoLoaded(false);
       setIsVideoPlaying(false);
       setCurrentTime(0);
@@ -136,11 +142,51 @@ function App() {
         setIsVideoLoaded(true);
       }
     }
-    video.addEventListener('loadedmetadata', videoLoaded);
+    video.addEventListener('loadedmetadata', videoLoaded); // not sure if I should use loadeddata or loadedmetadata, works fine with both
     return () => {
-      video.removeEventListener('loadedmetadata', videoLoaded); // not sure if I should use loadeddata or loadedmetadata, works fine with both
+      video.removeEventListener('loadedmetadata', videoLoaded);
     }
   }, []);
+
+  // Make chapters follow mouse:
+  useEffect(() => {
+    if (timelineHoverX !== null && timelineHoverTime !== null && tooltipRef.current && timelineRef.current && testInput.videoLength) { // types safe
+      // calculate mouse position relative to the timeline width
+      const timelineRect = timelineRef.current.getBoundingClientRect();
+      const tooltipElement = tooltipRef.current;
+      const tooltipWidth = tooltipElement.offsetWidth;
+      if (tooltipWidth === 0) return; // on load
+      const timelineWidth = timelineRect.width;
+      const hoverX = timelineHoverX; // tmp clone
+      // default position - center:
+      let newTooltipLeft: string | number = hoverX;
+      let newTooltipTransform = 'translateX(-50%)'; // controls the tooltip position using the GPU
+      let newArrowLeft = '50%'; // helps move the arrow left and right on the edges
+      const halfTooltipWidth = tooltipWidth / 2;
+      const edgePadding = 2;
+      // calculate new position every time the hover time changes..
+      if (hoverX - halfTooltipWidth < edgePadding) { // limits from left side
+        newTooltipLeft = `${edgePadding}px`;
+        newTooltipTransform = 'translateX(0%)';
+        const rawArrowLeft = hoverX - edgePadding;
+        const arrowMin = Math.max(0, tooltipWidth * 0.1);
+        const arrowMax = tooltipWidth * 0.9;
+        newArrowLeft = `${Math.max(arrowMin, Math.min(rawArrowLeft, arrowMax))}px`;
+      } else if (hoverX + halfTooltipWidth > timelineWidth - edgePadding) { // limits from right side
+        newTooltipLeft = `${timelineWidth - edgePadding}px`;
+        newTooltipTransform = 'translateX(-100%)';
+        const tooltipActualLeftEdge = timelineWidth - edgePadding - tooltipWidth;
+        const rawArrowLeft = hoverX - tooltipActualLeftEdge;
+        const arrowMin = Math.max(0, tooltipWidth * 0.1);
+        const arrowMax = tooltipWidth * 0.9;
+        newArrowLeft = `${Math.max(arrowMin, Math.min(rawArrowLeft, arrowMax))}px`;
+      }
+      // make tooltip and the arrow follow the mouse using the states and the css variable:
+      setTooltipLeftStyle(newTooltipLeft);
+      setTooltipTransformStyle(newTooltipTransform);
+      tooltipElement.style.setProperty('--arrow-left', newArrowLeft);
+    }
+  }, [timelineHoverX, timelineHoverTime, testInput.videoLength]);
 
   return (
     <>
@@ -151,22 +197,71 @@ function App() {
           className='w-full h-full'
         />
         {/* Timeline */}
-        <div className='flex gap-1 w-full absolute z-20 bottom-[25px] left-0 right-0'>
-          {/* Chapters */}
-          {testInput.chapters.map((chapter, index) => {
+        <div
+          ref={timelineRef}
+          className='flex gap-1 w-full absolute z-20 bottom-[25px] left-0 right-0 px-1 cursor-pointer'
+          onMouseMove={(event) => {
+            if (!timelineRef.current || !testInput.videoLength) return;
+            const timelineRect = timelineRef.current.getBoundingClientRect(); // get relative mouse position
+            const hoverX = event.clientX - timelineRect.left;
+            let hoverPercent = hoverX / timelineRect.width;
+            hoverPercent = Math.max(0, Math.min(1, hoverPercent));
+            const hoveredTime = hoverPercent * testInput.videoLength; // calculate hovered time
+            // show the current chapter tooltip:
+            setTimelineHoverTime(hoveredTime);
+            setTimelineHoverX(hoverX);
+          }}
+          onMouseLeave={() => { // hide the current chapter tooltip:
+            setTimelineHoverTime(null);
+            setTimelineHoverX(null);
+          }}
+          onClick={(event) => { // move the video to the clicked position:
+            if (!timelineRef.current || !videoRef.current || !testInput.videoLength) return;
+            const rect = timelineRef.current.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            let clickPercent = clickX / rect.width;
+            clickPercent = Math.max(0, Math.min(1, clickPercent));
+            const clickedTime = clickPercent * testInput.videoLength; // calculate clicked time
+            videoRef.current.currentTime = clickedTime;
+            setCurrentTime(clickedTime); // change video current time
+          }}
+        >
+          {/* Chapters Timeline */}
+          {testInput.chapters.map((chapter, index) => { // create the chapter line based on its duration
+            const chapterDuration = chapter.end - chapter.start; // seconds
+            const chapterWidthPercent = (testInput.videoLength > 0) ? (chapterDuration / testInput.videoLength) * 100 : 0;
             return (
-              <div key={`chapter_${index}`} className='chapter pt-3 pb-5 pointer-none w-full'>
-                <div className='chapter-line bg-[#ffffff70] transition-colors w-full h-[1.4px]'>
-                  <div className={`opacity-0 transition-opacity absolute p-4 rounded-[4px] bottom-[40px] arrow h-fit w-full max-w-[200px] text-center ${index === 0 ? 'left-1' : ''}${index === testInput.chapters.length - 1 ? 'right-1' : ''}${index !== 0 && index !== testInput.chapters.length - 1 ? '-ml-[63px]' : ''}`}
-                    style={{
-                      background: 'linear-gradient(#333, #222)'
-                    }}>
-                    {chapter.title}
-                  </div>
-                </div>
+              <div
+                key={`chapter_${index}`}
+                className='chapter pt-3 pb-5 relative'
+                style={{ flexBasis: `${chapterWidthPercent}%`, flexGrow: 0, flexShrink: 0 }}
+              >
+                <div className='chapter-line bg-[#ffffff70] transition-colors w-full h-[1.4px]'></div>
               </div>
             )
           })}
+          {/* Chapter tooltip */}
+          {timelineHoverTime !== null && timelineHoverX !== null && (() => {
+            const currentChapterForTooltip = testInput.chapters.find(ch => timelineHoverTime >= ch.start && timelineHoverTime < ch.end) || (timelineHoverTime === testInput.videoLength ? testInput.chapters[testInput.chapters.length - 1] : null);
+            if (!currentChapterForTooltip) return null;
+            return (
+              <div
+                ref={tooltipRef}
+                className={`transition-opacity pointer-events-none select-none absolute p-2 rounded-[4px] bottom-[38px] arrow h-fit text-center text-xs ${timelineHoverX !== null ? 'opacity-100' : 'opacity-0'} pointer-events-none z-30`}
+                style={{
+                  background: 'linear-gradient(#333, #222)',
+                  minWidth: '80px',
+                  padding: '6px 10px',
+                  left: tooltipLeftStyle,
+                  transform: tooltipTransformStyle,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <div>{currentChapterForTooltip.title}</div>
+                <div>{parseTime(timelineHoverTime)}</div>
+              </div>
+            );
+          })()}
         </div>
         {/* Controls */}
         <div className='flex align-center min-h-[30px] pb-2 pt-5 justify-between absolute z-10 bottom-0 left-0 right-0 cursor-auto'
