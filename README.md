@@ -49,3 +49,7 @@ v7: Better controls design and handling
 v8: Fullscreen support!
 
 ![v8](v8.png)
+
+v9: Timeline looks good! (Still not hoverable xD)
+
+![v9](v9.png)

@@ -118,6 +118,17 @@ function App() {
           ref={videoRef}
           className='w-full h-full'
         />
+        {/* Timeline */}
+        <div className='flex gap-1 w-full absolute z-20 bottom-[40px] left-0 right-0'>
+          {/* Chapters */}
+          {testInput.chapters.map((chapter, index) => {
+            return (
+              <div key={`chapter_${index}`} className='bg-blue-100 w-full h-[1px]'>
+                {/* <div hidden absolute>{chapter.title}</div> */}
+              </div>
+            )
+          })}
+        </div>
         {/* Controls */}
         <div className='flex align-center min-h-[30px] pb-2 pt-5 justify-between absolute z-10 bottom-0 left-0 right-0 cursor-auto'
           style={{
@@ -180,14 +191,6 @@ function App() {
             }}>
               <FullscreenIcon />
             </div>
-            {/* Chapters */}
-            {testInput.chapters.map((chapter, index) => {
-              return (
-                <div key={`chapter_${index}`} className='hidden absolute'>
-                  <div>{chapter.title}</div>
-                </div>
-              )
-            })}
             <img src='/yeda.svg' draggable={false} className='select-none' width={42} alt='yeda logo' />
           </div>
         </div>
