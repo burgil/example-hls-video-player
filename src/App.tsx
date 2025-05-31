@@ -63,7 +63,7 @@ function App() {
         <video
           ref={videoRef}
         />
-        <div className="flex">
+        <div className="flex absolute bottom-0 left-0 right-0">
           <PlayIcon />
           <VolumeIcon />
           <Volume1Icon />

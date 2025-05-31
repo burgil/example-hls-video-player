@@ -29,3 +29,7 @@ v2: Getting there
 v3: Parsed the time
 
 ![v3](v3.png)
+
+v4: Working on the video controls
+
+![v4](v4.png)
