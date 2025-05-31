@@ -61,3 +61,7 @@ v10: Rounded edges loosk good!
 v11: Chapters are showing up
 
 ![v11](v11.png)
+
+v12: Almost done
+
+![v12](v12.png)
