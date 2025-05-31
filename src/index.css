@@ -13,10 +13,18 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-body {
+* {
+  box-sizing: border-box;
+}
+
+h1 {
   margin: 0;
-  display: flex;
-  min-height: 100vh;
+  text-align: center;
+}
+
+body, #root {
+  margin: 0;
+  width: 100%;
 }
 
 @media (prefers-color-scheme: light) {
@@ -24,4 +32,10 @@ body {
     color: #213547;
     background-color: #ffffff;
   }
+}
+
+.video-player {
+  max-width: 570px;
+  margin: auto;
+  display: block;
 }
