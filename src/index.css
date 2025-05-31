@@ -36,7 +36,7 @@ body, #root {
 
 /* Video player */
 
-.video-player {
+.video-player-container {
   max-width: 570px;
   margin: auto;
   display: block;

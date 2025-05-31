@@ -1,4 +1,5 @@
 import { useMemo, useEffect, useRef } from "react"
+import { PlayIcon } from 'lucide-react';
 import Hls from "hls.js";
 
 function App() {
@@ -57,12 +58,13 @@ function App() {
 
   return (
     <>
-      <video
-        ref={videoRef}
-        controls
-        // src={testInput.hlsPlaylistUrl}
-        className='video-player'
-      />
+      <div className="video-player-container">
+        <video
+          ref={videoRef}
+          className='video-player'
+        />
+        <PlayIcon />
+      </div>
     </>
   )
 }
