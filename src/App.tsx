@@ -144,8 +144,8 @@ function App() {
 
   return (
     <>
-      {!isVideoLoaded && <LoaderIcon className='animate-spin' />}
-      <div id='video-player' className={`${!isVideoLoaded ? 'opacity-0 ' : ''}rounded-[10px] overflow-hidden m-auto max-w-[570px] relative${!isVideoPlaying ? ' cursor-pointer' : ''}`}>
+      {!isVideoLoaded && <LoaderIcon className='animate-spin m-auto w-full' />}
+      <div id='video-player' className={`${!isVideoLoaded ? 'hidden ' : ''}rounded-[10px] overflow-hidden m-auto max-w-[570px] relative${!isVideoPlaying ? ' cursor-pointer' : ''}`}>
         <video
           ref={videoRef}
           className='w-full h-full'
@@ -156,7 +156,7 @@ function App() {
           {testInput.chapters.map((chapter, index) => {
             return (
               <div key={`chapter_${index}`} className='chapter bg-blue-100 w-full h-[1px]'>
-                <div className='absolute p-4 rounded-[4px] bottom-[20px] arrow h-fit w-full max-w-[200px] text-center hidden'
+                <div className={`absolute p-4 rounded-[4px] bottom-[20px] arrow h-fit w-full max-w-[200px] text-center hidden ${index === 0 ? 'left-1' : ''}${index === testInput.chapters.length - 1 ? 'right-1' : ''}${index !== 0 && index !== testInput.chapters.length - 1 ? '-ml-[63px]' : ''}`}
                   style={{
                     background: 'linear-gradient(#333, #222)'
                   }}>

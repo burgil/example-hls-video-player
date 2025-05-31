@@ -26,6 +26,7 @@ body,
 
 #root {
   display: flex;
+  flex-direction: column;
 }
 
 @media (prefers-color-scheme: light) {
@@ -46,6 +47,16 @@ body,
   left: 0;
   margin: auto;
   width: 11px;
+}
+
+.arrow.left-1:after {
+  right: unset;
+  left: 15%;
+}
+
+.arrow.right-1:after {
+  left: unset;
+  right: 15%;
 }
 
 .chapter:hover .arrow {
