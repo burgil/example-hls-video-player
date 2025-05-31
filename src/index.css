@@ -46,6 +46,7 @@ body,
   width: 0;
   height: 0;
   transform: translateX(-50%);
+  will-change: transform;
   /* this variable is contolled with js */
   left: var(--arrow-left, 50%);
 }
