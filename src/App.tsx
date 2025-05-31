@@ -126,7 +126,13 @@ function App() {
           <div className='flex gap-4 ml-3'>
             {/* Play/Pause */}
             <div className='cursor-pointer' onClick={() => {
-
+              if (isVideoPlaying) {
+                videoRef.current?.pause();
+                setIsVideoPlaying(false);
+              } else {
+                videoRef.current?.play();
+                setIsVideoPlaying(true);
+              }
             }}>
               {isVideoPlaying ? (
                 <PauseIcon />
@@ -135,13 +141,23 @@ function App() {
               )}
             </div>
             {/* Volume */}
-            {currentVolume >= 75 ? (
-              <Volume2Icon />
-            ) : currentVolume === 0 ? (
-              <VolumeIcon />
-            ) : (
-              <Volume1Icon />
-            )}
+            <div className='cursor-pointer' onClick={() => {
+              if (currentVolume > 0.5) {
+                setCurrentVolume(0.5);
+              } else if (currentVolume === 0) {
+                setCurrentVolume(1.0);
+              } else {
+                setCurrentVolume(0.0);
+              }
+            }}>
+              {currentVolume > 0.5 ? (
+                <Volume2Icon />
+              ) : currentVolume === 0 ? (
+                <VolumeIcon />
+              ) : (
+                <Volume1Icon />
+              )}
+            </div>
             {/* Time */}
             <div className='select-none'>{parseTime(currentTime)} / {parseTime(testInput.videoLength)}</div>
           </div>
