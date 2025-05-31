@@ -10,7 +10,7 @@ Clone, install dependencies and run the app with:
 git clone https://github.com/burgil/example-hls-video-player
 cd example-hls-video-player
 pnpm install
-pnpm approve-builds # approve esbuild if you wish to build later
+pnpm approve-builds
 pnpm dev
 ```
 
