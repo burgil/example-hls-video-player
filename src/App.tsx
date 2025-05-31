@@ -164,9 +164,17 @@ function App() {
           {/* Right Side */}
           <div className='flex gap-4 mr-3'>
             {/* Settings */}
-            <SettingsIcon />
+            <div className='cursor-pointer' onClick={() => {
+              alert("WIP")
+            }}>
+              <SettingsIcon />
+            </div>
             {/* Fullscreen */}
-            <FullscreenIcon />
+            <div className='cursor-pointer' onClick={() => {
+              document.body.requestFullscreen();
+            }}>
+              <FullscreenIcon />
+            </div>
             {/* Chapters */}
             {testInput.chapters.map((chapter, index) => {
               return (
