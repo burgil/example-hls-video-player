@@ -41,7 +41,7 @@ function App() {
   // HLS.js
   useEffect(() => {
     const hls = new Hls({
-      "debug": true
+      "debug": false
     });
     if (Hls.isSupported()) {
       hls.loadSource(testInput.hlsPlaylistUrl);
@@ -70,11 +70,11 @@ function App() {
         <FullscreenIcon />
         <SettingsIcon />
         <div>0:00 / {testInput.videoLength}</div>
-        {testInput.chapters.map((chapter) => {
+        {testInput.chapters.map((chapter, index) => {
           return (
-            <>
-            <div>{chapter.title}</div>
-            </>
+            <div key={`chapter_${index}`}>
+              <div>{chapter.title}</div>
+            </div>
           )
         })}
       </div>
