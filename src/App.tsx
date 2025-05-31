@@ -113,9 +113,10 @@ function App() {
 
   return (
     <>
-      <div className={`m-auto max-w-[570px] relative${!isVideoPlaying ? ' cursor-pointer' : ''}`}>
+      <div id='video-player' className={`m-auto max-w-[570px] relative${!isVideoPlaying ? ' cursor-pointer' : ''}`}>
         <video
           ref={videoRef}
+          className='w-full h-full'
         />
         {/* Controls */}
         <div className='flex align-center min-h-[30px] pb-2 pt-5 justify-between absolute z-10 bottom-0 left-0 right-0 cursor-auto'
@@ -165,13 +166,17 @@ function App() {
           <div className='flex gap-4 mr-3'>
             {/* Settings */}
             <div className='cursor-pointer' onClick={() => {
-              alert("WIP")
+              alert('WIP')
             }}>
               <SettingsIcon />
             </div>
             {/* Fullscreen */}
             <div className='cursor-pointer' onClick={() => {
-              document.body.requestFullscreen();
+              if (document.fullscreenElement) {
+                document.exitFullscreen();
+              } else {
+                document.getElementById('video-player')?.requestFullscreen();
+              }
             }}>
               <FullscreenIcon />
             </div>

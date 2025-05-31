@@ -45,3 +45,7 @@ v6: The timer works now!
 v7: Better controls design and handling
 
 ![v7](v7.png)
+
+v8: Fullscreen support!
+
+![v8](v8.png)
