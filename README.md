@@ -33,3 +33,7 @@ v3: Parsed the time
 v4: Working on the video controls
 
 ![v4](v4.png)
+
+v5: Controls almost done
+
+![v5](v5.png)

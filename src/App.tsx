@@ -5,8 +5,10 @@ import { parseTime } from "./utils";
 
 function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const [currentVolume, setCurrentVolume] = useState(0.5);
 
   // Test Input:
   const testInput = useMemo(() => {
@@ -50,6 +52,7 @@ function App() {
       hls.loadSource(testInput.hlsPlaylistUrl);
       if (videoRef.current) {
         hls.attachMedia(videoRef.current);
+        setIsVideoLoaded(true);
       }
       hls.on(Hls.Events.ERROR, (err) => {
         console.log(err)
@@ -59,13 +62,22 @@ function App() {
     }
   }, [testInput])
 
+  // Update the volume:
+  useEffect(() => {
+    if (videoRef.current && isVideoLoaded) {
+      videoRef.current.volume = currentVolume;
+    }
+  }, [currentVolume, isVideoLoaded]);
+
   return (
     <>
       <div className="m-auto max-w-[570px] relative">
         <video
           ref={videoRef}
         />
+        {/* Controls */}
         <div className="flex absolute bottom-0 left-0 right-0">
+          {/* Play/Pause */}
           <div className='cursor-pointer' onClick={() => {
             if (isVideoPlaying) {
               videoRef.current?.pause();
@@ -81,12 +93,21 @@ function App() {
               <PlayIcon />
             )}
           </div>
-          <VolumeIcon />
-          <Volume1Icon />
-          <Volume2Icon />
-          <FullscreenIcon />
-          <SettingsIcon />
+          {/* Volume */}
+          {currentVolume >= 75 ? (
+            <Volume2Icon />
+          ) : currentVolume === 0 ? (
+            <VolumeIcon />
+          ) : (
+            <Volume1Icon />
+          )}
+          {/* Time */}
           <div>{parseTime(currentTime)} / {parseTime(testInput.videoLength)}</div>
+          {/* Settings */}
+          <SettingsIcon />
+          {/* Fullscreen */}
+          <FullscreenIcon />
+          {/* Chapters */}
           {testInput.chapters.map((chapter, index) => {
             return (
               <div key={`chapter_${index}`} className="hidden absolute">
@@ -94,6 +115,7 @@ function App() {
               </div>
             )
           })}
+          <img src="/yeda.svg" width={42} alt="yeda logo" />
         </div>
       </div>
     </>
