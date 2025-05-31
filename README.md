@@ -41,3 +41,7 @@ v5: Controls almost done
 v6: The timer works now!
 
 ![v6](v6.png)
+
+v7: Better controls design and handling
+
+![v7](v7.png)

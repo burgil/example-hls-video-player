@@ -71,6 +71,12 @@ function App() {
     } else {
       console.error('HLS is not supported on this browser!')
     }
+    return () => { // Reset values on hot module reload
+      setIsVideoLoaded(false);
+      setIsVideoPlaying(false);
+      setCurrentTime(0);
+      setCurrentVolume(0.5);
+    }
   }, [testInput])
 
   // Update the volume:
@@ -107,38 +113,47 @@ function App() {
           ref={videoRef}
         />
         {/* Controls */}
-        <div className="flex absolute bottom-0 left-0 right-0">
-          {/* Play/Pause */}
-          <div className='cursor-pointer' onClick={playPauseVideo}>
-            {isVideoPlaying ? (
-              <PauseIcon />
+        <div className="flex align-center min-h-[30px] pb-2 pt-5 justify-between absolute z-10 bottom-0 left-0 right-0 cursor-auto"
+          style={{
+            background: 'linear-gradient(0deg, rgb(0 0 0 / 79%), transparent)'
+          }}>
+          {/* Left Side */}
+          <div className='flex gap-4 ml-3'>
+            {/* Play/Pause */}
+            <div className='cursor-pointer' onClick={playPauseVideo}>
+              {isVideoPlaying ? (
+                <PauseIcon />
+              ) : (
+                <PlayIcon />
+              )}
+            </div>
+            {/* Volume */}
+            {currentVolume >= 75 ? (
+              <Volume2Icon />
+            ) : currentVolume === 0 ? (
+              <VolumeIcon />
             ) : (
-              <PlayIcon />
+              <Volume1Icon />
             )}
+            {/* Time */}
+            <div>{parseTime(currentTime)} / {parseTime(testInput.videoLength)}</div>
           </div>
-          {/* Volume */}
-          {currentVolume >= 75 ? (
-            <Volume2Icon />
-          ) : currentVolume === 0 ? (
-            <VolumeIcon />
-          ) : (
-            <Volume1Icon />
-          )}
-          {/* Time */}
-          <div>{parseTime(currentTime)} / {parseTime(testInput.videoLength)}</div>
-          {/* Settings */}
-          <SettingsIcon />
-          {/* Fullscreen */}
-          <FullscreenIcon />
-          {/* Chapters */}
-          {testInput.chapters.map((chapter, index) => {
-            return (
-              <div key={`chapter_${index}`} className="hidden absolute">
-                <div>{chapter.title}</div>
-              </div>
-            )
-          })}
-          <img src="/yeda.svg" width={42} alt="yeda logo" />
+          {/* Right Side */}
+          <div className='flex gap-4 mr-3'>
+            {/* Settings */}
+            <SettingsIcon />
+            {/* Fullscreen */}
+            <FullscreenIcon />
+            {/* Chapters */}
+            {testInput.chapters.map((chapter, index) => {
+              return (
+                <div key={`chapter_${index}`} className="hidden absolute">
+                  <div>{chapter.title}</div>
+                </div>
+              )
+            })}
+            <img src="/yeda.svg" width={42} alt="yeda logo" />
+          </div>
         </div>
       </div>
     </>
