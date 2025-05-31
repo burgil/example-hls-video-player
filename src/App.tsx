@@ -1,10 +1,12 @@
-import { useMemo, useEffect, useRef } from "react"
+import { useMemo, useEffect, useRef, useState } from "react"
 import { PlayIcon, Volume1Icon, Volume2Icon, VolumeIcon, FullscreenIcon, SettingsIcon } from 'lucide-react';
 import Hls from "hls.js";
 import { parseTime } from "./utils";
 
 function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isVideoPlayer, setIsVideoPlayer] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
 
   // Test Input:
   const testInput = useMemo(() => {
@@ -64,13 +66,15 @@ function App() {
           ref={videoRef}
         />
         <div className="flex absolute bottom-0 left-0 right-0">
-          <PlayIcon />
+          <PlayIcon className='pointer' onClick={() => {
+            videoRef.current?.play();
+          }} />
           <VolumeIcon />
           <Volume1Icon />
           <Volume2Icon />
           <FullscreenIcon />
           <SettingsIcon />
-          <div>0:00 / {parseTime(testInput.videoLength)}</div>
+          <div>{parseTime(currentTime)} / {parseTime(testInput.videoLength)}</div>
           {testInput.chapters.map((chapter, index) => {
             return (
               <div key={`chapter_${index}`} className="hidden absolute">
