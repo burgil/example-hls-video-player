@@ -1,7 +1,7 @@
-import { useMemo, useEffect, useRef, useState, useCallback } from "react"
+import { useMemo, useEffect, useRef, useState, useCallback } from 'react'
 import { PlayIcon, Volume1Icon, Volume2Icon, VolumeIcon, FullscreenIcon, SettingsIcon, PauseIcon } from 'lucide-react';
-import Hls from "hls.js";
-import { parseTime } from "./utils";
+import Hls from 'hls.js';
+import { parseTime } from './utils';
 
 function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -10,7 +10,7 @@ function App() {
   const [currentTime, setCurrentTime] = useState(0);
   const [currentVolume, setCurrentVolume] = useState(0.5);
 
-  // Play/Pause Video:
+  // Play/Pause Video Function:
   const playPauseVideo = useCallback(() => {
     if (isVideoPlaying) {
       videoRef.current?.pause();
@@ -24,32 +24,32 @@ function App() {
   // Test Input:
   const testInput = useMemo(() => {
     return {
-      "hlsPlaylistUrl": "https://vz-50e60d70-540.b-cdn.net/b87ac5f4-2cf0-42d1-acc8-32a89d3c71c7/playlist.m3u8",
-      "videoLength": 348, // seconds
-      "chapters": [
-        { "title": "Introduction & Course Overview", "start": 0, "end": 14 },
+      'hlsPlaylistUrl': 'https://vz-50e60d70-540.b-cdn.net/b87ac5f4-2cf0-42d1-acc8-32a89d3c71c7/playlist.m3u8',
+      'videoLength': 348, // seconds
+      'chapters': [
+        { 'title': 'Introduction & Course Overview', 'start': 0, 'end': 14 },
         {
-          "title": "Curiosity's Role in Critical & Creative Thinking",
-          "start": 15,
-          "end": 57
+          'title': 'Curiosity\'s Role in Critical & Creative Thinking',
+          'start': 15,
+          'end': 57
         },
         {
-          "title": "Analytical vs Creative Thinking Explained",
-          "start": 58,
-          "end": 116
+          'title': 'Analytical vs Creative Thinking Explained',
+          'start': 58,
+          'end': 116
         },
         {
-          "title": "Building Your Bank of Dots",
-          "start": 117,
-          "end": 138
+          'title': 'Building Your Bank of Dots',
+          'start': 117,
+          'end': 138
         },
         {
-          "title": "Practical Strategies to Stay Curious",
-          "start": 139,
-          "end": 225
+          'title': 'Practical Strategies to Stay Curious',
+          'start': 139,
+          'end': 225
         },
-        { "title": "Benefits of Curiosity", "start": 226, "end": 312 },
-        { "title": "Conclusion & Recap", "start": 313, "end": 348 }
+        { 'title': 'Benefits of Curiosity', 'start': 226, 'end': 312 },
+        { 'title': 'Conclusion & Recap', 'start': 313, 'end': 348 }
       ]
     }
   }, []);
@@ -57,7 +57,7 @@ function App() {
   // HLS.js
   useEffect(() => {
     const hls = new Hls({
-      "debug": false
+      'debug': false
     });
     if (Hls.isSupported()) {
       hls.loadSource(testInput.hlsPlaylistUrl);
@@ -113,7 +113,7 @@ function App() {
           ref={videoRef}
         />
         {/* Controls */}
-        <div className="flex align-center min-h-[30px] pb-2 pt-5 justify-between absolute z-10 bottom-0 left-0 right-0 cursor-auto"
+        <div className='flex align-center min-h-[30px] pb-2 pt-5 justify-between absolute z-10 bottom-0 left-0 right-0 cursor-auto'
           style={{
             background: 'linear-gradient(0deg, rgb(0 0 0 / 79%), transparent)'
           }}>
@@ -147,12 +147,12 @@ function App() {
             {/* Chapters */}
             {testInput.chapters.map((chapter, index) => {
               return (
-                <div key={`chapter_${index}`} className="hidden absolute">
+                <div key={`chapter_${index}`} className='hidden absolute'>
                   <div>{chapter.title}</div>
                 </div>
               )
             })}
-            <img src="/yeda.svg" width={42} alt="yeda logo" />
+            <img src='/yeda.svg' className='select-none' width={42} alt='yeda logo' />
           </div>
         </div>
       </div>
