@@ -57,7 +57,6 @@ function App() {
 
   return (
     <>
-      <h1>Hello Yeda</h1>
       <video
         ref={videoRef}
         controls

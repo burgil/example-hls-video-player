@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+* {
+  box-sizing: border-box;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -15,18 +19,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-h1 {
-  margin: 0;
-  text-align: center;
-}
-
 body, #root {
-  margin: 0;
-  width: 100%;
+  min-height: 100vh;
+}
+
+#root {
+  display: flex;
 }
 
 @media (prefers-color-scheme: light) {
@@ -35,6 +33,8 @@ body, #root {
     background-color: #ffffff;
   }
 }
+
+/* Video player */
 
 .video-player {
   max-width: 570px;
