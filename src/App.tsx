@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useRef, useState } from 'react'
-import { PlayIcon, Volume1Icon, Volume2Icon, VolumeIcon, FullscreenIcon, SettingsIcon, PauseIcon } from 'lucide-react';
+import { PlayIcon, Volume1Icon, Volume2Icon, VolumeIcon, FullscreenIcon, SettingsIcon, PauseIcon, LoaderIcon } from 'lucide-react';
 import Hls from 'hls.js';
 import { parseTime } from './utils';
 
@@ -52,7 +52,6 @@ function App() {
       hls.loadSource(testInput.hlsPlaylistUrl);
       if (videoRef.current) {
         hls.attachMedia(videoRef.current);
-        setIsVideoLoaded(true);
       }
       hls.on(Hls.Events.ERROR, (err) => {
         if (err !== 'hlsError') console.log(err);
@@ -111,9 +110,42 @@ function App() {
     }
   }, [isVideoLoaded]);
 
+  // On video end:
+  useEffect(() => {
+    if (!isVideoLoaded) return;
+    const video = videoRef.current;
+    if (!video) return;
+    function videoEnded() {
+      if (video) {
+        console.log("Video finished playing")
+      }
+    }
+    video.addEventListener('ended', videoEnded);
+    return () => {
+      video.removeEventListener('ended', videoEnded);
+    }
+  }, [isVideoLoaded]);
+
+  // On video load:
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    function videoLoaded() {
+      if (video) {
+        console.log("Video finished loading")
+        setIsVideoLoaded(true);
+      }
+    }
+    video.addEventListener('loadedmetadata', videoLoaded);
+    return () => {
+      video.removeEventListener('loadedmetadata', videoLoaded); // not sure if I should use loadeddata or loadedmetadata, works fine with both
+    }
+  }, []);
+
   return (
     <>
-      <div id='video-player' className={`rounded-[10px] overflow-hidden m-auto max-w-[570px] relative${!isVideoPlaying ? ' cursor-pointer' : ''}`}>
+      {!isVideoLoaded && <LoaderIcon className='animate-spin' />}
+      <div id='video-player' className={`${!isVideoLoaded ? 'opacity-0 ' : ''}rounded-[10px] overflow-hidden m-auto max-w-[570px] relative${!isVideoPlaying ? ' cursor-pointer' : ''}`}>
         <video
           ref={videoRef}
           className='w-full h-full'
