@@ -53,3 +53,7 @@ v8: Fullscreen support!
 v9: Timeline looks good! (Still not hoverable xD)
 
 ![v9](v9.png)
+
+v10: Rounded edges loosk good!
+
+![v10](v10.png)

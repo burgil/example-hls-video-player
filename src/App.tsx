@@ -113,7 +113,7 @@ function App() {
 
   return (
     <>
-      <div id='video-player' className={`m-auto max-w-[570px] relative${!isVideoPlaying ? ' cursor-pointer' : ''}`}>
+      <div id='video-player' className={`rounded-[10px] overflow-hidden m-auto max-w-[570px] relative${!isVideoPlaying ? ' cursor-pointer' : ''}`}>
         <video
           ref={videoRef}
           className='w-full h-full'
