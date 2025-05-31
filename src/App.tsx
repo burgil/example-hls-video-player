@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useRef } from "react"
-import { PlayIcon } from 'lucide-react';
+import { PlayIcon, Volume1Icon, Volume2Icon, VolumeIcon, FullscreenIcon, SettingsIcon } from 'lucide-react';
 import Hls from "hls.js";
 
 function App() {
@@ -64,6 +64,19 @@ function App() {
           className='video-player'
         />
         <PlayIcon />
+        <VolumeIcon />
+        <Volume1Icon />
+        <Volume2Icon />
+        <FullscreenIcon />
+        <SettingsIcon />
+        <div>0:00 / {testInput.videoLength}</div>
+        {testInput.chapters.map((chapter) => {
+          return (
+            <>
+            <div>{chapter.title}</div>
+            </>
+          )
+        })}
       </div>
     </>
   )
