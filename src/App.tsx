@@ -7,6 +7,7 @@ function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const [isTooltipReadyToShow, setIsTooltipReadyToShow] = useState(false);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -155,7 +156,10 @@ function App() {
       const timelineRect = timelineRef.current.getBoundingClientRect();
       const tooltipElement = tooltipRef.current;
       const tooltipWidth = tooltipElement.offsetWidth;
-      if (tooltipWidth === 0) return; // on load
+      if (tooltipWidth === 0) {
+        setIsTooltipReadyToShow(false);
+        return; // on load or if tooltip not ready (fixes a glitch where the tooltip shows in the last position for a brief moment)
+      }
       const timelineWidth = timelineRect.width;
       const hoverX = timelineHoverX; // tmp clone
       // default position - center:
@@ -185,6 +189,9 @@ function App() {
       setTooltipLeftStyle(newTooltipLeft);
       setTooltipTransformStyle(newTooltipTransform);
       tooltipElement.style.setProperty('--arrow-left', newArrowLeft);
+      setIsTooltipReadyToShow(true);
+    } else {
+      setIsTooltipReadyToShow(false);
     }
   }, [timelineHoverX, timelineHoverTime, testInput.videoLength]);
 
@@ -214,6 +221,7 @@ function App() {
           onMouseLeave={() => { // hide the current chapter tooltip:
             setTimelineHoverTime(null);
             setTimelineHoverX(null);
+            // setIsTooltipReadyToShow(false); // This will be handled by the useEffect above
           }}
           onClick={(event) => { // move the video to the clicked position:
             if (!timelineRef.current || !videoRef.current || !testInput.videoLength) return;
@@ -247,7 +255,11 @@ function App() {
             return (
               <div
                 ref={tooltipRef}
-                className={`transition-opacity pointer-events-none select-none absolute p-2 rounded-[4px] bottom-[38px] arrow h-fit text-center text-xs ${timelineHoverX !== null ? 'opacity-100' : 'opacity-0'} pointer-events-none z-30`}
+                className={`pointer-events-none select-none absolute p-2 rounded-[4px] bottom-[38px] arrow h-fit text-center text-xs z-30
+                  ${isTooltipReadyToShow
+                    ? 'opacity-100 transition-opacity'
+                    : 'opacity-0'
+                  }`}
                 style={{
                   background: 'linear-gradient(#333, #222)',
                   minWidth: '80px',
