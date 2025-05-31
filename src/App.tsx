@@ -117,29 +117,12 @@ function App() {
     }
   }, [isVideoLoaded]);
 
-  // On video end:
-  useEffect(() => {
-    if (!isVideoLoaded) return;
-    const video = videoRef.current;
-    if (!video) return;
-    function videoEnded() {
-      if (video) {
-        console.log("Video finished playing")
-      }
-    }
-    video.addEventListener('ended', videoEnded);
-    return () => {
-      video.removeEventListener('ended', videoEnded);
-    }
-  }, [isVideoLoaded]);
-
   // On video load:
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     function videoLoaded() {
       if (video) {
-        console.log("Video finished loading")
         setIsVideoLoaded(true);
       }
     }
@@ -148,6 +131,23 @@ function App() {
       video.removeEventListener('loadedmetadata', videoLoaded);
     }
   }, []);
+
+  // On video end:
+  useEffect(() => {
+    if (!isVideoLoaded) return;
+    const video = videoRef.current;
+    if (!video) return;
+    function videoEnded() {
+      if (video) {
+        setIsVideoPlaying(false);
+        setCurrentTime(0);
+      }
+    }
+    video.addEventListener('ended', videoEnded);
+    return () => {
+      video.removeEventListener('ended', videoEnded);
+    }
+  }, [isVideoLoaded]);
 
   // Make chapters follow mouse:
   useEffect(() => {
