@@ -1,6 +1,10 @@
 # HLS Video Player
 
-I recommend using `pnpm`.
+Follow the installation guide below to start.
+
+I recommend using [pnpm](https://pnpm.io/).
+
+Clone, install dependencies and run the app with:
 
 ```bash
 git clone https://github.com/burgil/example-hls-video-player
@@ -10,4 +14,4 @@ pnpm approve-builds # approve esbuild if you wish to build later
 pnpm dev
 ```
 
-<http://localhost:5173/>
+Then open the app: <http://localhost:5173/>
