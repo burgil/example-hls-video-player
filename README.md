@@ -73,3 +73,7 @@ v13: Final touches
 v14: Made the chapters follow the mouse & show current hover time + detect click time
 
 ![v14](patch-logs/v14.png)
+
+v15: Playhead is working nice
+
+![v15](patch-logs/v15.png)

@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef, useState } from 'react'
+import { useMemo, useEffect, useRef, useState, useCallback } from 'react'
 import { PlayIcon, Volume1Icon, Volume2Icon, VolumeIcon, FullscreenIcon, SettingsIcon, PauseIcon, LoaderIcon } from 'lucide-react';
 import Hls from 'hls.js';
 import { parseTime } from './utils';
@@ -15,6 +15,7 @@ function App() {
   const [tooltipContent, setTooltipContent] = useState<{ title: string, timeStr: string } | null>(null);
   const [tooltipLeftStyle, setTooltipLeftStyle] = useState<string | number>('50%');
   const [tooltipTransformStyle, setTooltipTransformStyle] = useState<string>('translateX(-50%)');
+  const [isScrubbing, setIsScrubbing] = useState(false);
 
   // Test Input:
   const testInput = useMemo(() => {
@@ -148,14 +149,54 @@ function App() {
     }
   }, [isVideoLoaded]);
 
+  // playhead support: (on playhead interaction started)
+  const handleMouseMoveWhileScrubbing = useCallback((e: MouseEvent) => {
+    if (!timelineRef.current || !videoRef.current || !testInput.videoLength || !isVideoLoaded) return;
+    const rect = timelineRef.current.getBoundingClientRect();
+    const clientX = e.clientX;
+    let newTimePercent = (clientX - rect.left) / rect.width;
+    newTimePercent = Math.max(0, Math.min(1, newTimePercent)); // 0-1
+    const newTime = newTimePercent * testInput.videoLength;
+    if (videoRef.current.readyState >= videoRef.current.HAVE_METADATA) {
+      videoRef.current.currentTime = newTime;
+    }
+    setCurrentTime(newTime);
+  }, [testInput.videoLength, isVideoLoaded, setCurrentTime]);
+
+  // On playhead interaction ended:
+  const handleMouseUpAfterScrubbing = useCallback(() => {
+    setIsScrubbing(false);
+  }, [setIsScrubbing]);
+
+  // main effect to control dragging the line to change the current video time:
+  useEffect(() => {
+    let originalBodyCursor = '';
+    if (isScrubbing) {
+      originalBodyCursor = document.body.style.cursor;
+      document.body.style.cursor = 'grabbing';
+      document.addEventListener('mousemove', handleMouseMoveWhileScrubbing);
+      document.addEventListener('mouseup', handleMouseUpAfterScrubbing);
+    }
+    return () => {
+      if (isScrubbing) {
+        document.body.style.cursor = originalBodyCursor;
+      }
+      document.removeEventListener('mousemove', handleMouseMoveWhileScrubbing);
+      document.removeEventListener('mouseup', handleMouseUpAfterScrubbing);
+    };
+  }, [isScrubbing, handleMouseMoveWhileScrubbing, handleMouseUpAfterScrubbing]);
+
   return (
     <>
       {!isVideoLoaded && <LoaderIcon className='animate-spin m-auto w-full' />}
       <div id='video-player' className={`${!isVideoLoaded ? 'hidden ' : ''}rounded-[10px] overflow-hidden m-auto max-w-[570px] relative${!isVideoPlaying ? ' cursor-pointer' : ''}`}>
+
+        {/* HLS Video Element */}
         <video
           ref={videoRef}
           className='w-full h-full'
         />
+
         {/* Timeline */}
         <div
           ref={timelineRef}
@@ -218,7 +259,10 @@ function App() {
             setTooltipContent(null);
           }}
           onClick={(event) => { // move the video to the clicked position:
-            if (!timelineRef.current || !videoRef.current || !testInput.videoLength) return;
+            if (!timelineRef.current || !videoRef.current || !testInput.videoLength || !isVideoLoaded) return;
+            if ((event.target as HTMLElement).closest('.scrubber-thumb')) { // prevent changing video duration when clicking the scrubber
+              return;
+            }
             const rect = timelineRef.current.getBoundingClientRect();
             const clickX = event.clientX - rect.left;
             let clickPercent = clickX / rect.width;
@@ -231,17 +275,55 @@ function App() {
           {/* Chapters Timeline */}
           {testInput.chapters.map((chapter, index) => { // create the chapter line based on its duration
             const chapterDuration = chapter.end - chapter.start; // seconds
-            const chapterWidthPercent = (testInput.videoLength > 0) ? (chapterDuration / testInput.videoLength) * 100 : 0;
+            const chapterWidthPercent = (isVideoLoaded && testInput.videoLength > 0) ? (chapterDuration / testInput.videoLength) * 100 : 0;
+            const isCurrentChapter = currentTime >= chapter.start && currentTime < chapter.end;
             return (
               <div
                 key={`chapter_${index}`}
-                className='chapter pt-3 pb-5 relative'
+                className='chapter pt-3 pb-5 relative' // pt-3 is 12px
                 style={{ flexBasis: `${chapterWidthPercent}%`, flexGrow: 0, flexShrink: 0 }}
               >
-                <div className='chapter-line bg-[#ffffff70] transition-colors w-full h-[1.4px]'></div>
+                <div className={`chapter-line ${isCurrentChapter ? 'bg-blue-500' : 'bg-[#ffffff70]'} transition-colors w-full h-[1.4px]`}></div>
               </div>
             )
           })}
+
+          {/* Playhead */}
+          {(() => {
+            const progressPercent = (isVideoLoaded && testInput.videoLength > 0) ? (currentTime / testInput.videoLength) * 100 : 0;
+            return (
+              <>
+                {/* draggable line time indicator */}
+                <div
+                  className='absolute bg-white h-[1.4px] pointer-events-none'
+                  style={{
+                    left: '1px',
+                    top: '12px',
+                    width: `calc(${progressPercent}% - 1px)`,
+                    zIndex: 21,
+                  }}
+                />
+                <div
+                  className={`absolute bg-white ${isScrubbing ? 'cursor-grabbing' : 'cursor-grab'} scrubber-thumb`}
+                  style={{
+                    left: `${progressPercent}%`,
+                    top: `calc(12px + 0.7px)`,
+                    transform: 'translate(-50%, -50%)',
+                    width: '3px',
+                    height: '15px',
+                    zIndex: 22,
+                    pointerEvents: 'auto',
+                  }}
+                  onMouseDown={(e: React.MouseEvent) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsScrubbing(true);
+                  }}
+                />
+              </>
+            );
+          })()}
+
           {/* Chapter tooltip */}
           <div
             ref={tooltipRef}
@@ -263,6 +345,7 @@ function App() {
             )}
           </div>
         </div>
+
         {/* Controls */}
         <div className='flex align-center min-h-[30px] pb-2 pt-5 justify-between absolute z-10 bottom-0 left-0 right-0 cursor-auto'
           style={{
@@ -307,6 +390,7 @@ function App() {
             {/* Time */}
             <div className='select-none'>{parseTime(currentTime)} / {parseTime(testInput.videoLength)}</div>
           </div>
+
           {/* Right Side */}
           <div className='flex gap-4 mr-3'>
             {/* Settings */}
