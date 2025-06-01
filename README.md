@@ -54,7 +54,7 @@ v9: Timeline looks good! (Still not hoverable xD)
 
 ![v9](patch-logs/v9.png)
 
-v10: Rounded edges loosk good!
+v10: Rounded edges looks good!
 
 ![v10](patch-logs/v10.png)
 
