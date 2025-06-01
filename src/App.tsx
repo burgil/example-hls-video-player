@@ -1,12 +1,13 @@
 import { useMemo, useEffect, useRef, useState, useCallback } from 'react'
 import { PlayIcon, Volume1Icon, Volume2Icon, VolumeIcon, FullscreenIcon, SettingsIcon, PauseIcon, LoaderIcon } from 'lucide-react';
-import Hls from 'hls.js';
+import Hls, { type Level } from 'hls.js';
 import { parseTime } from './utils';
 
 function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const [isTooltipReadyToShow, setIsTooltipReadyToShow] = useState(false);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -16,6 +17,9 @@ function App() {
   const [tooltipLeftStyle, setTooltipLeftStyle] = useState<string | number>('50%');
   const [tooltipTransformStyle, setTooltipTransformStyle] = useState<string>('translateX(-50%)');
   const [isScrubbing, setIsScrubbing] = useState(false);
+  const [qualityLevels, setQualityLevels] = useState<Level[]>([]);
+  const [currentQualityLevel, setCurrentQualityLevel] = useState(-1); // -1 = auto
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Test Input:
   const testInput = useMemo(() => {
@@ -52,27 +56,60 @@ function App() {
 
   // HLS.js
   useEffect(() => {
-    const hls = new Hls({
-      'debug': false
-    });
-    if (Hls.isSupported()) {
-      hls.loadSource(testInput.hlsPlaylistUrl);
-      if (videoRef.current) {
-        hls.attachMedia(videoRef.current);
-      }
-      hls.on(Hls.Events.ERROR, (err) => {
-        if (err !== 'hlsError') console.log(err);
-      });
-    } else {
-      console.error('HLS is not supported on this browser!')
+    if (!Hls.isSupported()) {
+      console.error('HLS is not supported on this browser!');
+      return;
     }
+    const hls = new Hls({
+      debug: false,
+    });
+    hlsRef.current = hls;
+    hls.loadSource(testInput.hlsPlaylistUrl);
+    if (videoRef.current) {
+      hls.attachMedia(videoRef.current);
+    }
+    hls.on(Hls.Events.MANIFEST_PARSED, (_event, data) => {
+      setQualityLevels(data.levels as Level[]);
+      setCurrentQualityLevel(hls.currentLevel);
+    });
+    hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
+      setCurrentQualityLevel(data.level);
+    });
+    hls.on(Hls.Events.ERROR, (event, data) => {
+      if (data.fatal) {
+        // new error handling checks:
+        switch (data.type) {
+          case Hls.ErrorTypes.NETWORK_ERROR:
+            console.error('fatal network error encountered, try to recover', event, data);
+            hls.startLoad();
+            break;
+          case Hls.ErrorTypes.MEDIA_ERROR:
+            console.error('fatal media error encountered, try to recover', event, data);
+            hls.recoverMediaError();
+            break;
+          default:
+            console.error('unrecoverable error', event, data);
+            hls.destroy();
+            break;
+        }
+      } else {
+        if (event !== 'hlsError') console.log(event, data); // remove annoying errors on debug
+      }
+    });
     return () => { // reset values on hot module reload
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
       setIsVideoLoaded(false);
       setIsVideoPlaying(false);
       setCurrentTime(0);
       setCurrentVolume(0.5);
-    }
-  }, [testInput])
+      setQualityLevels([]);
+      setCurrentQualityLevel(-1);
+      setIsSettingsOpen(false);
+    };
+  }, [testInput]);
 
   // Update the volume:
   useEffect(() => {
@@ -280,7 +317,7 @@ function App() {
             return (
               <div
                 key={`chapter_${index}`}
-                className='chapter pt-3 pb-5 relative' // pt-3 is 12px
+                className='chapter pt-3 pb-5 relative'
                 style={{ flexBasis: `${chapterWidthPercent}%`, flexGrow: 0, flexShrink: 0 }}
               >
                 <div className={`chapter-line ${isCurrentChapter ? 'bg-blue-500' : 'bg-[#ffffff70]'} transition-colors w-full h-[1.4px]`}></div>
@@ -394,10 +431,39 @@ function App() {
           {/* Right Side */}
           <div className='flex gap-4 mr-3'>
             {/* Settings */}
-            <div className='cursor-pointer relative z-30' onClick={() => {
-              alert('WIP')
-            }}>
-              <SettingsIcon />
+            <div className='relative'>
+              <div className='cursor-pointer relative z-30' onClick={() => setIsSettingsOpen(prev => !prev)}>
+                <SettingsIcon />
+              </div>
+              {isSettingsOpen && qualityLevels.length > 0 && (
+                <div className='absolute bottom-full -left-[20px] mb-6 bg-[#222] p-2 rounded shadow-lg z-40 w-16'>
+                  <div
+                    className={`p-1 hover:bg-[#444] cursor-pointer ${currentQualityLevel === -1 ? 'font-bold' : ''}`}
+                    onClick={() => {
+                      if (hlsRef.current) {
+                        hlsRef.current.currentLevel = -1; // auto
+                      }
+                      setIsSettingsOpen(false);
+                    }}
+                  >
+                    Auto
+                  </div>
+                  {qualityLevels.map((level, index) => (
+                    <div
+                      key={level.height || index}
+                      className={`p-1 hover:bg-[#444] cursor-pointer ${currentQualityLevel === index ? 'font-bold' : ''}`}
+                      onClick={() => {
+                        if (hlsRef.current) {
+                          hlsRef.current.currentLevel = index;
+                        }
+                        setIsSettingsOpen(false);
+                      }}
+                    >
+                      {level.height ? `${level.height}p` : `Level ${index + 1}`}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             {/* Fullscreen */}
             <div className='cursor-pointer relative z-30' onClick={() => {
