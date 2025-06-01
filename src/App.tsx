@@ -12,8 +12,7 @@ function App() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [currentVolume, setCurrentVolume] = useState(0.5);
-  const [timelineHoverTime, setTimelineHoverTime] = useState<number | null>(null);
-  const [timelineHoverX, setTimelineHoverX] = useState<number | null>(null);
+  const [tooltipContent, setTooltipContent] = useState<{ title: string, timeStr: string } | null>(null);
   const [tooltipLeftStyle, setTooltipLeftStyle] = useState<string | number>('50%');
   const [tooltipTransformStyle, setTooltipTransformStyle] = useState<string>('translateX(-50%)');
 
@@ -149,52 +148,6 @@ function App() {
     }
   }, [isVideoLoaded]);
 
-  // Make chapters follow mouse:
-  useEffect(() => {
-    if (timelineHoverX !== null && timelineHoverTime !== null && tooltipRef.current && timelineRef.current && testInput.videoLength) { // types safe
-      // calculate mouse position relative to the timeline width
-      const timelineRect = timelineRef.current.getBoundingClientRect();
-      const tooltipElement = tooltipRef.current;
-      const tooltipWidth = tooltipElement.offsetWidth;
-      if (tooltipWidth === 0) {
-        setIsTooltipReadyToShow(false);
-        return; // on load or if tooltip not ready (fixes a glitch where the tooltip shows in the last position for a brief moment)
-      }
-      const timelineWidth = timelineRect.width;
-      const hoverX = timelineHoverX; // tmp clone
-      // default position - center:
-      let newTooltipLeft: string | number = hoverX;
-      let newTooltipTransform = 'translateX(-50%)'; // controls the tooltip position using the GPU
-      let newArrowLeft = '50%'; // helps move the arrow left and right on the edges
-      const halfTooltipWidth = tooltipWidth / 2;
-      const edgePadding = 2;
-      // calculate new position every time the hover time changes..
-      if (hoverX - halfTooltipWidth < edgePadding) { // limits from left side
-        newTooltipLeft = `${edgePadding}px`;
-        newTooltipTransform = 'translateX(0%)';
-        const rawArrowLeft = hoverX - edgePadding;
-        const arrowMin = Math.max(0, tooltipWidth * 0.1);
-        const arrowMax = tooltipWidth * 0.9;
-        newArrowLeft = `${Math.max(arrowMin, Math.min(rawArrowLeft, arrowMax))}px`;
-      } else if (hoverX + halfTooltipWidth > timelineWidth - edgePadding) { // limits from right side
-        newTooltipLeft = `${timelineWidth - edgePadding}px`;
-        newTooltipTransform = 'translateX(-100%)';
-        const tooltipActualLeftEdge = timelineWidth - edgePadding - tooltipWidth;
-        const rawArrowLeft = hoverX - tooltipActualLeftEdge;
-        const arrowMin = Math.max(0, tooltipWidth * 0.1);
-        const arrowMax = tooltipWidth * 0.9;
-        newArrowLeft = `${Math.max(arrowMin, Math.min(rawArrowLeft, arrowMax))}px`;
-      }
-      // make tooltip and the arrow follow the mouse using the states and the css variable:
-      setTooltipLeftStyle(newTooltipLeft);
-      setTooltipTransformStyle(newTooltipTransform);
-      tooltipElement.style.setProperty('--arrow-left', newArrowLeft);
-      setIsTooltipReadyToShow(true);
-    } else {
-      setIsTooltipReadyToShow(false);
-    }
-  }, [timelineHoverX, timelineHoverTime, testInput.videoLength]);
-
   return (
     <>
       {!isVideoLoaded && <LoaderIcon className='animate-spin m-auto w-full' />}
@@ -208,20 +161,61 @@ function App() {
           ref={timelineRef}
           className='flex gap-1 w-full absolute z-20 bottom-[25px] left-0 right-0 px-1 cursor-pointer'
           onMouseMove={(event) => {
-            if (!timelineRef.current || !testInput.videoLength) return;
-            const timelineRect = timelineRef.current.getBoundingClientRect(); // get relative mouse position
+            if (!timelineRef.current || !tooltipRef.current || !testInput.videoLength) return;
+            // calculate hover time:
+            const timelineRect = timelineRef.current.getBoundingClientRect();
             const hoverX = event.clientX - timelineRect.left;
             let hoverPercent = hoverX / timelineRect.width;
             hoverPercent = Math.max(0, Math.min(1, hoverPercent));
-            const hoveredTime = hoverPercent * testInput.videoLength; // calculate hovered time
-            // show the current chapter tooltip:
-            setTimelineHoverTime(hoveredTime);
-            setTimelineHoverX(hoverX);
+            const hoveredTime = hoverPercent * testInput.videoLength;
+            // find chapter from hovered time:
+            const currentChapterForTooltip = testInput.chapters.find(ch => hoveredTime >= ch.start && hoveredTime < ch.end) || (hoveredTime === testInput.videoLength ? testInput.chapters[testInput.chapters.length - 1] : null);
+            if (!currentChapterForTooltip) {
+              setTooltipContent(null);
+              setIsTooltipReadyToShow(false);
+              return;
+            }
+            // load the current chapter and hovered time into the tooltip:
+            setTooltipContent({ title: currentChapterForTooltip.title, timeStr: parseTime(hoveredTime) });
+            const tooltipElement = tooltipRef.current;
+            const tooltipWidth = tooltipElement.offsetWidth;
+            if (tooltipWidth === 0) {
+              setIsTooltipReadyToShow(false);
+              return;
+            }
+            // default tooltip position - center:
+            const timelineWidth = timelineRect.width;
+            let newTooltipLeft: string | number = hoverX;
+            let newTooltipTransform = 'translateX(-50%)'; // controls the tooltip position using the GPU
+            let newArrowLeft = '50%'; // helps move the arrow left and right on the edges
+            const halfTooltipWidth = tooltipWidth / 2;
+            const edgePadding = 2;
+            // calculate new position every time the hover time changes..
+            if (hoverX - halfTooltipWidth < edgePadding) { // limits from left side
+              newTooltipLeft = `${edgePadding}px`;
+              newTooltipTransform = 'translateX(0%)';
+              const rawArrowLeft = hoverX - edgePadding;
+              const arrowMin = Math.max(0, tooltipWidth * 0.1);
+              const arrowMax = tooltipWidth * 0.9;
+              newArrowLeft = `${Math.max(arrowMin, Math.min(rawArrowLeft, arrowMax))}px`;
+            } else if (hoverX + halfTooltipWidth > timelineWidth - edgePadding) { // limits from right side
+              newTooltipLeft = `${timelineWidth - edgePadding}px`;
+              newTooltipTransform = 'translateX(-100%)';
+              const tooltipActualLeftEdge = timelineWidth - edgePadding - tooltipWidth;
+              const rawArrowLeft = hoverX - tooltipActualLeftEdge;
+              const arrowMin = Math.max(0, tooltipWidth * 0.1);
+              const arrowMax = tooltipWidth * 0.9;
+              newArrowLeft = `${Math.max(arrowMin, Math.min(rawArrowLeft, arrowMax))}px`;
+            }
+            // make tooltip and the arrow follow the mouse using the states and the css variable:
+            setTooltipLeftStyle(newTooltipLeft);
+            setTooltipTransformStyle(newTooltipTransform);
+            tooltipElement.style.setProperty('--arrow-left', newArrowLeft);
+            setIsTooltipReadyToShow(true);
           }}
-          onMouseLeave={() => { // hide the current chapter tooltip:
-            setTimelineHoverTime(null);
-            setTimelineHoverX(null);
-            // setIsTooltipReadyToShow(false); // This will be handled by the useEffect above
+          onMouseLeave={() => {
+            setIsTooltipReadyToShow(false);
+            setTooltipContent(null);
           }}
           onClick={(event) => { // move the video to the clicked position:
             if (!timelineRef.current || !videoRef.current || !testInput.videoLength) return;
@@ -249,31 +243,25 @@ function App() {
             )
           })}
           {/* Chapter tooltip */}
-          {timelineHoverTime !== null && timelineHoverX !== null && (() => {
-            const currentChapterForTooltip = testInput.chapters.find(ch => timelineHoverTime >= ch.start && timelineHoverTime < ch.end) || (timelineHoverTime === testInput.videoLength ? testInput.chapters[testInput.chapters.length - 1] : null);
-            if (!currentChapterForTooltip) return null;
-            return (
-              <div
-                ref={tooltipRef}
-                className={`pointer-events-none select-none absolute p-2 rounded-[4px] bottom-[38px] arrow h-fit text-center text-xs z-30
-                  ${isTooltipReadyToShow
-                    ? 'opacity-100 transition-opacity'
-                    : 'opacity-0'
-                  }`}
-                style={{
-                  background: 'linear-gradient(#333, #222)',
-                  minWidth: '80px',
-                  padding: '6px 10px',
-                  left: tooltipLeftStyle,
-                  transform: tooltipTransformStyle,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <div>{currentChapterForTooltip.title}</div>
-                <div>{parseTime(timelineHoverTime)}</div>
-              </div>
-            );
-          })()}
+          <div
+            ref={tooltipRef}
+            className={`pointer-events-none select-none absolute p-2 rounded-[4px] bottom-[38px] arrow h-fit text-center text-xs z-30 ${isTooltipReadyToShow && tooltipContent ? 'opacity-100 transition-opacity' : 'opacity-0'}`}
+            style={{
+              background: 'linear-gradient(#333, #222)',
+              minWidth: '80px',
+              padding: '6px 10px',
+              left: tooltipLeftStyle,
+              transform: tooltipTransformStyle,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {tooltipContent && (
+              <>
+                <div>{tooltipContent.title}</div>
+                <div>{tooltipContent.timeStr}</div>
+              </>
+            )}
+          </div>
         </div>
         {/* Controls */}
         <div className='flex align-center min-h-[30px] pb-2 pt-5 justify-between absolute z-10 bottom-0 left-0 right-0 cursor-auto'

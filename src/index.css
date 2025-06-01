@@ -22,6 +22,7 @@
 body,
 #root {
   min-height: 100vh;
+  overflow: hidden;
 }
 
 #root {
@@ -47,7 +48,7 @@ body,
   height: 0;
   transform: translateX(-50%);
   will-change: transform;
-  /* this variable is contolled with js */
+  /* this variable is controlled from react */
   left: var(--arrow-left, 50%);
 }
 
